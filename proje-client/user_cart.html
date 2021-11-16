@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/5/lux/bootstrap.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <title>Sepetim</title>
+  </head>
+  <body>
+    <br />
+    <br />
+    <h1 class="text-center">Sepetim</h1>
+    <br />
+    <br />
+    <div class="container text-center w-75">
+      <table id="productTable" class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Ürün Adı</th>
+            <th>Ürün Sayısı</th>
+            <th>Fiyat</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <br />
+      <br />
+      <br />
+      <div id="buyCart"></div>
+      <br />
+      <br />
+      <br />
+      <form id="userForm">
+        <div class="form-group">
+          <label for="card_number">Kart Numarası</label>
+          <input type="text" class="form-control" name="card_number" />
+        </div>
+        <div class="form-group">
+          <label for="card_owner">Kart Sahibinin Adı</label>
+          <input type="text" class="form-control" name="card_owner" />
+        </div>
+        <div class="form-group">
+          <label for="card_lud">Son Kullanma Tarihi</label>
+          <input
+            type="text"
+            class="form-control"
+            name="card_lud"
+            placeholder="gg/aa/yyyy"
+          />
+        </div>
+        <div class="form-group">
+          <label for="card_cvc">Kart CVC</label>
+          <input type="text" class="form-control" name="card_cvc" />
+        </div>
+        <br />
+        <br />
+        <div class="text-center">
+          <button class="btn btn-success">Siparişi Tamamla</button>
+        </div>
+      </form>
+      <br />
+      <br />
+      <br />
+      <br />
+    </div>
+
+    <script>
+      const CARD_URL = 'http://localhost:8080/Proje/rest/credit-cards';
+      const ORDER_URL = 'http://localhost:8080/Proje/rest/orders';
+
+      $(document).ready(() => {
+        $('#userForm').hide();
+        const table = document.getElementById('productTable');
+
+        const userCart = JSON.parse(localStorage.getItem('userCart')) || {};
+        let totalPrice = 0;
+        for (const [product, data] of Object.entries(userCart)) {
+          const row = document.createElement('tr');
+          const productName = document.createElement('td');
+          const productCount = document.createElement('td');
+          const productPrice = document.createElement('td');
+          const buttonsDiv = document.createElement('div');
+          const addProductButton = document.createElement('button');
+          const removeProductButton = document.createElement('button');
+
+          productName.classList.add('text-center');
+          productCount.classList.add('text-center');
+          productPrice.classList.add('text-center');
+          addProductButton.classList.add('btn', 'btn-success', 'addProduct');
+          addProductButton.classList.add('text-center');
+          addProductButton.innerHTML = '+';
+          removeProductButton.classList.add(
+            'btn',
+            'btn-danger',
+            'removeProduct'
+          );
+          removeProductButton.classList.add('text-center');
+          removeProductButton.innerHTML = '-';
+          buttonsDiv.appendChild(removeProductButton);
+          buttonsDiv.appendChild(addProductButton);
+
+          productName.innerHTML = product;
+          productCount.innerHTML = data.count;
+          productPrice.innerHTML = data.price;
+
+          totalPrice += Number(data.price);
+
+          row.appendChild(productName);
+          row.appendChild(productCount);
+          row.appendChild(productPrice);
+          row.appendChild(buttonsDiv);
+
+          table.getElementsByTagName('tbody')[0].appendChild(row);
+        }
+
+        const buyCart = document.getElementById('buyCart');
+        const totalPriceDiv = document.createElement('div');
+        const buyCartButtonDiv = document.createElement('div');
+        const buyCartButton = document.createElement('button');
+
+        buyCartButton.classList.add('btn', 'btn-success', 'mt-2');
+
+        totalPriceDiv.innerHTML = 'Sepetin Tutarı: ' + totalPrice + ' ₺';
+        buyCartButton.innerHTML = 'Satın Al';
+        buyCartButton.id = 'buyCartButton';
+
+        buyCart.appendChild(totalPriceDiv);
+        buyCart.appendChild(buyCartButton);
+
+        $('.addProduct').click((event) => {
+          event.preventDefault();
+          const row = event.target.parentNode.parentNode;
+          const productName = row.childNodes[0].innerHTML;
+          const productCount = row.childNodes[1].innerHTML;
+          const productPrice =
+            Number(row.childNodes[2].innerHTML) / Number(productCount);
+          const userCart = JSON.parse(localStorage.getItem('userCart'));
+          userCart[productName].count++;
+          userCart[productName].price =
+            userCart[productName].count * productPrice;
+          localStorage.setItem('userCart', JSON.stringify(userCart));
+          location = '/user_cart.html';
+        });
+
+        $('.removeProduct').click((event) => {
+          event.preventDefault();
+          const row = event.target.parentNode.parentNode;
+          const productName = row.childNodes[0].innerHTML;
+          const productCount = row.childNodes[1].innerHTML;
+          const productPrice =
+            Number(row.childNodes[2].innerHTML) / Number(productCount);
+          const userCart = JSON.parse(localStorage.getItem('userCart'));
+          userCart[productName].count--;
+          if (userCart[productName].count == 0) {
+            event.target.parentNode.parentNode.parentNode.removeChild(row);
+            delete userCart[productName];
+          } else {
+            userCart[productName].price =
+              userCart[productName].count * productPrice;
+          }
+          localStorage.setItem('userCart', JSON.stringify(userCart));
+          location = '/user_cart.html';
+        });
+
+        $('#buyCartButton').click((event) => {
+          event.preventDefault();
+          $('#userForm').show();
+        });
+
+        $('#userForm').submit((event) => {
+          event.preventDefault();
+          const data = new FormData(event.target);
+          $.ajax({
+            type: 'POST',
+            url: CARD_URL,
+            data: JSON.stringify(Object.fromEntries(data)),
+            contentType: 'application/json',
+            success: () => {
+              alert('Ödeme Başarıyla Tamamlandı...');
+              const order = {
+                order_user: localStorage.getItem('loggedUser'),
+                order_card: data.get('card_number'),
+                order_price: totalPrice,
+                order_orderedProducts: [],
+              };
+
+              for (const [product, data] of Object.entries(userCart)) {
+                const orderedProduct = {
+                  ordered_product_product: Number(data.id),
+                  quantity: data.count,
+                };
+
+                order.order_orderedProducts.push(orderedProduct);
+              }
+
+              $.ajax({
+                type: 'POST',
+                url: ORDER_URL,
+                data: JSON.stringify(order),
+                contentType: 'application/json',
+                success: () => {
+                  location = '/index.html';
+                  localStorage.removeItem('userCart');
+                },
+              });
+            },
+            error: () => {
+              alert('Hatalı Kart Bilgileri!!');
+              $('#userForm').hide();
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

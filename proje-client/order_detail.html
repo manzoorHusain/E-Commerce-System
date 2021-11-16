@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/5/lux/bootstrap.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <title>Sipariş Detayları</title>
+  </head>
+  <body>
+    <br />
+    <br />
+    <h1 class="text-center"></h1>
+    <br />
+    <br />
+
+    <div class="container" id="details"></div>
+
+    <script>
+      $(document).ready(() => {
+        let totalProducts = 0;
+        const productContainer = document.getElementById('details');
+        const currentOrder = JSON.parse(localStorage.getItem('currentOrder'));
+        document.getElementsByTagName('h1')[0].innerHTML =
+          currentOrder.order_id + ' Numaralı Siparişin Detayları';
+
+        const firstRow = document.createElement('div');
+        firstRow.classList.add('row', 'firstRow');
+
+        const userCol = document.createElement('div');
+        userCol.classList.add('col');
+
+        const orderUser = document.createElement('div');
+        const orderUserEmail = document.createElement('div');
+
+        orderUser.classList.add('text-center');
+        orderUserEmail.classList.add('text-center');
+
+        orderUser.innerHTML =
+          'Siparişi Veren Kullanıcı: ' + currentOrder.order_user.split('/')[0];
+        orderUserEmail.innerHTML =
+          'Kullanıcının E-posta Adresi: ' +
+          currentOrder.order_user.split('/')[1];
+
+        userCol.appendChild(orderUser);
+        userCol.appendChild(orderUserEmail);
+        firstRow.appendChild(userCol);
+
+        const cardCol = document.createElement('div');
+        cardCol.classList.add('col');
+
+        const cardNumber = document.createElement('div');
+        const cardOwner = document.createElement('div');
+
+        cardNumber.classList.add('text-center');
+        cardOwner.classList.add('text-center');
+
+        cardNumber.innerHTML =
+          'Siparişte Kullanılan Kart Numarası: ' +
+          currentOrder.order_card.split('/')[0];
+        cardOwner.innerHTML =
+          'Kartın Sahibi: ' + currentOrder.order_card.split('/')[1];
+
+        cardCol.appendChild(cardNumber);
+        cardCol.appendChild(cardOwner);
+        firstRow.appendChild(cardCol);
+        productContainer.appendChild(firstRow);
+
+        const secondRow = document.createElement('div');
+        secondRow.classList.add('row');
+
+        const productHeader = document.createElement('div');
+        productHeader.classList.add('text-center', 'mt-5', 'fw-bold', 'fs-3');
+        productHeader.innerHTML = 'Siparişte Bulunan Ürünler';
+        secondRow.appendChild(productHeader);
+
+        const products = [];
+        let product = [];
+        for (const p of currentOrder.order_orderedProducts) {
+          if (p === '/') {
+            products.push(product);
+            product = [];
+            continue;
+          }
+          product.push(p);
+        }
+
+        const productCol = document.createElement('div');
+        productCol.classList.add('col');
+
+        for (const p of products) {
+          const product_name = document.createElement('div');
+          const product_totalPrice = document.createElement('div');
+          const product_quantity = document.createElement('div');
+          const brk = document.createElement('br');
+
+          product_name.classList.add('text-center', 'mt-4');
+          product_totalPrice.classList.add('text-center');
+          product_quantity.classList.add('text-center');
+
+          product_name.innerHTML = 'Ürünün Adı: ' + p[0];
+          product_totalPrice.innerHTML = 'Ödenen Toplam Tutar: ' + p[1] + ' ₺';
+          product_quantity.innerHTML = 'Ürün Sayısı: ' + p[2];
+
+          totalProducts += Number(p[2]);
+
+          productCol.appendChild(product_name);
+          productCol.appendChild(product_quantity);
+          productCol.appendChild(product_totalPrice);
+          productCol.appendChild(brk);
+        }
+
+        secondRow.appendChild(productCol);
+        productContainer.appendChild(secondRow);
+
+        const thirdRow = document.createElement('div');
+        thirdRow.classList.add('row', 'thirdRow');
+
+        const totalCol = document.createElement('col');
+        totalCol.classList.add('col');
+
+        const totalInfoDiv = document.createElement('div');
+        const totalPriceDiv = document.createElement('div');
+        const totalProductsDiv = document.createElement('div');
+
+        totalInfoDiv.classList.add(
+          'text-center',
+          'fw-bold',
+          'fs-3',
+          'mt-5',
+          'mb-3'
+        );
+        totalPriceDiv.classList.add('text-center');
+        totalProductsDiv.classList.add('text-center');
+
+        totalInfoDiv.innerHTML = 'Sipariş Özeti';
+        totalPriceDiv.innerHTML =
+          'Toplam Sipariş Tutarı: ' + currentOrder.order_price + ' ₺';
+        totalProductsDiv.innerHTML = 'Satılan Ürün Sayısı: ' + totalProducts;
+
+        totalCol.appendChild(totalInfoDiv);
+        totalCol.appendChild(totalPriceDiv);
+        totalCol.appendChild(totalProductsDiv);
+
+        thirdRow.appendChild(totalCol);
+        productContainer.appendChild(thirdRow);
+
+        if (localStorage.getItem('userIsAdmin') === 'false') {
+          $('.firstRow').hide();
+          $('.thirdRow').hide();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/5/lux/bootstrap.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <title>Anasayfa</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="me-auto">
+        <ul class="nav">
+          <li class="nav-item">
+            <a class="nav-link active" href="/index.html">Anasayfa</a>
+          </li>
+        </ul>
+      </div>
+      <div class="ms-auto">
+        <ul class="nav">
+          <li class="nav-item">
+            <a class="nav-link active" href="/user_orders.html" id="userOrders"
+              >Siparişlerim</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/signup.html" id="signup"
+              >Kayıt Ol</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/login.html" id="login"
+              >Giriş Yap</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <br />
+    <br />
+    <br />
+    <br />
+    <div class="container" id="products"></div>
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <script>
+      const PRODUCT_URL = 'http://localhost:8080/Proje/rest/products';
+
+      $(document).ready(() => {
+        $('#userOrders').hide();
+        if (localStorage.getItem('loggedUser') != null) {
+          $('#login').text(localStorage.getItem('loggedUser'));
+          $('#login').attr('href', '#');
+          if (localStorage.getItem('userIsAdmin') !== 'true') {
+            $('#userOrders').show();
+            $('#signup').text('Sepetim');
+            $('#signup').attr('href', '/user_cart.html');
+          } else {
+            $('#signup').text('Tüm Siparişler');
+            $('#signup').attr('href', '/admin_page.html');
+          }
+
+          $('#login').click((event) => {
+            event.preventDefault();
+            localStorage.clear();
+            location = '/index.html';
+          });
+        }
+
+        $.get(PRODUCT_URL, (data) => {
+          const productContainer = document.getElementById('products');
+
+          const rowNumber = Math.ceil(data.length / 3);
+          const datas_grouped = new Array(rowNumber)
+            .fill('')
+            .map((_, i) => data.slice(i * 3, (i + 1) * 3));
+
+          for (const product_row of datas_grouped) {
+            const row = document.createElement('div');
+            row.classList.add('row');
+
+            for (const product of product_row) {
+              const col = document.createElement('div');
+              col.classList.add('col');
+
+              const product_id = document.createElement('input');
+              const product_img = document.createElement('div');
+              const product_name = document.createElement('div');
+              const product_price = document.createElement('div');
+              const product_button = document.createElement('div');
+
+              product_img.classList.add('text-center');
+              product_name.classList.add('text-center');
+              product_price.classList.add('text-center', 'fw-bold', 'fs-4');
+              product_button.classList.add('text-center');
+
+              const img = document.createElement('img');
+              img.width = '200';
+              img.height = '200';
+              img.src = product.product_img;
+
+              product_img.appendChild(img);
+
+              const button = document.createElement('button');
+              button.classList.add('btn', 'btn-primary', 'mb-3', 'addToCart');
+              button.innerHTML = 'Sepete Ekle';
+
+              product_button.appendChild(button);
+
+              product_id.innerHTML = product.product_id;
+              product_name.innerHTML = product.product_name;
+              product_price.innerHTML = product.product_price + ' ₺';
+
+              col.appendChild(product_img);
+              col.appendChild(product_name);
+              col.appendChild(product_price);
+              col.appendChild(product_button);
+              col.appendChild(product_id);
+
+              row.appendChild(col);
+            }
+
+            productContainer.appendChild(row);
+          }
+
+          const inputs = document.getElementsByTagName('input');
+          for (let i = 0; i < inputs.length; i++) {
+            inputs[i].setAttribute('hidden', 'true');
+          }
+
+          $('.addToCart').click((event) => {
+            event.preventDefault();
+            const col = event.target.parentNode.parentNode;
+            const productId = col.childNodes[4].innerHTML;
+            const productName = col.childNodes[1].innerHTML;
+            const productPrice = col.childNodes[2].innerHTML.split(' ')[0];
+            const userCart = JSON.parse(localStorage.getItem('userCart')) || {};
+            if (!userCart.hasOwnProperty(productName)) {
+              userCart[productName] = {
+                id: 0,
+                count: 0,
+                price: Number(productPrice),
+              };
+            }
+            userCart[productName].id = productId;
+            userCart[productName].count++;
+            userCart[productName].price =
+              userCart[productName].count * Number(productPrice);
+            localStorage.setItem('userCart', JSON.stringify(userCart));
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

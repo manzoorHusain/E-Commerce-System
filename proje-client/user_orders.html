@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/5/lux/bootstrap.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <title>Siparişlerim</title>
+  </head>
+  <body>
+    <br />
+    <br />
+    <h1 class="text-center">Siparişlerim</h1>
+    <br />
+    <br />
+    <div class="container text-center w-75">
+      <table id="orderTable" class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Sipariş Numarası</th>
+            <th>Sipariş Tutarı</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script>
+      const USER_URL =
+        'http://localhost:8080/Proje/rest/orders/user/' +
+        localStorage.getItem('loggedUser');
+      const ORDER_URL = 'http://localhost:8080/Proje/rest/orders';
+      $(document).ready(() => {
+        $.get(USER_URL, (data) => {
+          const table = document.getElementById('orderTable');
+
+          for (let i = 0; i < data.length; i++) {
+            const row = document.createElement('tr');
+            const orderId = document.createElement('td');
+            const orderPrice = document.createElement('td');
+            const detailsButtonDiv = document.createElement('div');
+            const detailsButton = document.createElement('button');
+
+            orderId.innerHTML = data[i].order_id;
+            orderPrice.innerHTML = data[i].order_price + ' ₺';
+            detailsButton.innerHTML = 'Sipariş Detayları';
+
+            detailsButton.classList.add('btn', 'btn-link', 'detailsButton');
+            detailsButtonDiv.classList.add('text-center');
+            detailsButtonDiv.appendChild(detailsButton);
+
+            row.appendChild(orderId);
+            row.appendChild(orderPrice);
+            row.appendChild(detailsButtonDiv);
+
+            table.getElementsByTagName('tbody')[0].appendChild(row);
+          }
+
+          $('.detailsButton').click((event) => {
+            event.preventDefault();
+            const row = event.target.parentNode.parentNode;
+            const orderId = row.childNodes[0].innerHTML;
+            $.get(ORDER_URL + `/${orderId}`, (order) => {
+              localStorage.setItem('currentOrder', JSON.stringify(order));
+              location = '/order_detail.html';
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

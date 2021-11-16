@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/5/lux/bootstrap.min.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <title>Giriş Yap</title>
+  </head>
+  <body>
+    <br />
+    <br />
+    <h1 class="text-center">Giriş Yap</h1>
+    <br />
+    <br />
+
+    <form class="text-center w-25 container" id="userForm">
+      <div class="form-group">
+        <label for="user_name">Kullanıcı Adı</label>
+        <input type="text" class="form-control" name="user_name" />
+      </div>
+      <div class="form-group">
+        <label for="user_password">Şifre</label>
+        <input type="password" class="form-control" name="user_password" />
+      </div>
+      <br />
+      <br />
+      <div class="text-center">
+        <button class="btn btn-success">Giriş Yap</button>
+      </div>
+    </form>
+
+    <script>
+      const adminCode = 'GSbM8C';
+      const USER_URL =
+        'http://localhost:8080/Proje/rest/operations-on-users/login';
+
+      $(document).ready(() => {
+        const form = $('#userForm');
+        form.submit((event) => {
+          event.preventDefault();
+          const data = new FormData(event.target);
+          $.ajax({
+            type: 'POST',
+            url: USER_URL,
+            data: JSON.stringify(Object.fromEntries(data)),
+            contentType: 'application/json',
+            success: (response) => {
+              alert('Başarıyla Giriş Yapıldı...');
+              localStorage.setItem('loggedUser', data.get('user_name'));
+              localStorage.setItem('userIsAdmin', response[0]);
+              location = '/index.html';
+            },
+            error: () => {
+              alert('Hata!!');
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
